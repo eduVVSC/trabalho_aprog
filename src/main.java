@@ -1,5 +1,7 @@
+
 import java.util.Scanner;
-public class Main {
+
+public class main {
 
         //Declaração de constantes globais
 
@@ -153,5 +155,22 @@ public class Main {
             // Ler no enunciado o que é para fazer
         }
 
-        // TODO: Fazer todos os métodos de print ( chato :( )
+    // TODO: Fazer todos os métodos de print ( chato :( )
+
+        public static void print_Days(int dayNumbers){
+            System.out.printf("dia :");
+            for (int i = 0; i < dayNumbers; i++) {
+                System.out.printf("       %d", i);
+            }
+            System.out.println();
+            System.out.printf("----|");
+            for (int i = 0; i < dayNumbers; i++) {
+                System.out.printf("-------|");
+            }
+            System.out.println();
+        }
+
+
+
 }
+
