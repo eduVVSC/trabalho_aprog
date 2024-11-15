@@ -32,7 +32,7 @@ public class Main {
             PercentageLeft = calculate_Percentage_Left(TripInfo, RecargasDiarias, carNumbers, dayNumbers);
 
             double[] AverageDayFleet = calculate_Average_Day_Fleet(TripInfo, carNumbers, dayNumbers);
-            String[] VehiclesAboveAverage = calculate_Vehicles_Above_Average(TripInfo, AverageDayFleet);
+            boolean[] VehiclesAboveAverage = calculate_Vehicles_Above_Average(TripInfo, AverageDayFleet);
             int LatestDayRecharging = calculate_Latest_Day_Recharging(Recargas);
 
             double TotalRechargesCost = calculate_Total_Recharges_Cost(Recargas);
@@ -106,6 +106,10 @@ public class Main {
             return PercentageLeft;
         }
 
+        public static double calculate_Average_Km(int sum, int carNumbers){
+            return (double)sum/carNumbers;
+        }
+
         public static double[] calculate_Average_Day_Fleet(int[][] TripInfo, int carNumbers, int dayNumbers){
             int sum = 0;
             double[] AverageDayFleet = new double[dayNumbers];
@@ -113,13 +117,24 @@ public class Main {
                 for (int j = 0; j < dayNumbers; j++) {
                     sum += TripInfo[i][j];
                 }
-                AverageDayFleet[i] = (double) sum / carNumbers;
+                AverageDayFleet[i] = calculate_Average_Km(sum, carNumbers);
             }
            return AverageDayFleet;
         }
 
-        public static void calculate_Vehicles_Above_Average(int[][] TripInfo, double Average){
-            // Este método vai imprimir os carros que percorreram mais km que a média diária da frota
+        public static boolean[] calculate_Vehicles_Above_Average(int[][] TripInfo, double Average, int carNumbers, int dayNumbers){
+            int sum = 0;
+            boolean[] VehiclesAboveAverage = new boolean[carNumbers];
+            for (int i = 0; i < carNumbers; i++) {
+                sum = 0;
+                for (int j = 0; j < dayNumbers; j++) {
+                    sum += TripInfo[i][j];
+                }
+                if (calculate_Average_Km(sum, carNumbers) > Average) {
+                    VehiclesAboveAverage[i] = true;
+                }
+            }
+            return VehiclesAboveAverage;
         }
 
         public static void calculate_Vehicles_Charged_In_Row(int[][] Recargas){
