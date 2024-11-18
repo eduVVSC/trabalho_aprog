@@ -15,7 +15,8 @@ public class main {
         //Declaração de Variáveis globais
         public static Scanner scanner = new Scanner(System.in);
         //-------------------------
-        public static void main(String[] args) {
+
+		public static void main(String[] args) {
 			String		description;
 			boolean[]	VehiclesAboveAverage;
 			double		TotalRechargesCost;
@@ -37,13 +38,12 @@ public class main {
             read_Planning(TripInfo, dayNumbers, carNumbers);
 			printA(TripInfo, carNumbers, dayNumbers);
 
+			System.out.println("b) total de km a percorrer");
             calculate_TripSum(CarTripSum, TripInfo, carNumbers, dayNumbers);
 			printB(CarTripSum, carNumbers);
 
+			System.out.println("\nc) recargas das baterias");
 			RecargasDiarias = calculate_Recargas_Day(TripInfo, carNumbers, dayNumbers);
-			System.out.println();
-
-			System.out.println("c) recargas das baterias");
 			printA(RecargasDiarias, carNumbers, dayNumbers);
 
             System.out.println("d) carga das baterias");
@@ -265,7 +265,6 @@ public class main {
 
 		public static void printB(int[] CarTripSum, int carNumbers)
 		{
-			System.out.println("b) total de km a percorrer");
 			for (int i = 0; i < carNumbers; i++)
 				System.out.printf("V%d :	%d\n",i, CarTripSum[i]);
 		}
