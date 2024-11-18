@@ -1,4 +1,5 @@
 
+import java.time.DayOfWeek;
 import java.util.Scanner;
 
 public class main {
@@ -16,24 +17,22 @@ public class main {
         //-------------------------
         public static void main(String[] args) {
 			String		description;
-			double[][]	PercentageLeft;//Cada index -> percentagem de bateria que cada carro tem no final de cada dia da viagem
-            int[][]		RecargasDiarias; //Cada index -> número de recargas de cada carro dia
+			boolean[]	VehiclesAboveAverage;
+			double		TotalRechargesCost;
+			double[]	AverageDayFleet;
+			double[][]	PercentageLeft;
+			int[][]		RecargasDiarias;
 			int[][]		TripInfo;
 			int[]		CarTripSum;
+			int			LatestDayRecharging;
 			int			dayNumbers;
-            int			carNumbers;
-
-			//=================everything out====================//
-            /* String line = scanner.nextLine();
-            String[] sizes = line.split(" ");
-            dayNumbers = Integer.parseInt(sizes[0]);
-            carNumbers = Integer.parseInt(sizes[1]);*/
+			int			carNumbers;
 
 			description = read_Description();
-            carNumbers = scanner.nextInt();
+			carNumbers = scanner.nextInt();
 			dayNumbers = scanner.nextInt();
-            TripInfo = new int[carNumbers][dayNumbers];
-			CarTripSum = new int[carNumbers]; //Cada index -> viagem total de cada carro
+			TripInfo = new int[carNumbers][dayNumbers];
+			CarTripSum = new int[carNumbers];
 
             read_Planning(TripInfo, dayNumbers, carNumbers);
 			printA(TripInfo, carNumbers, dayNumbers);
@@ -41,21 +40,32 @@ public class main {
             calculate_TripSum(CarTripSum, TripInfo, carNumbers, dayNumbers);
 			printB(CarTripSum, carNumbers);
 
-            RecargasDiarias = calculate_Recargas_Day(TripInfo, carNumbers, dayNumbers);
+			RecargasDiarias = calculate_Recargas_Day(TripInfo, carNumbers, dayNumbers);
 			System.out.println();
 
-            System.out.println("c) recargas das baterias");
+			System.out.println("c) recargas das baterias");
 			printA(RecargasDiarias, carNumbers, dayNumbers);
 
             System.out.println("d) carga das baterias");
-           	PercentageLeft = calculate_Percentage_Left(TripInfo, RecargasDiarias, carNumbers, dayNumbers);
+			PercentageLeft = calculate_Percentage_Left(TripInfo, RecargasDiarias, carNumbers, dayNumbers);
 			printD(PercentageLeft, carNumbers, dayNumbers);
-   /*       double[] AverageDayFleet = calculate_Average_Day_Fleet(TripInfo, carNumbers, dayNumbers);
-            boolean[] VehiclesAboveAverage = calculate_Vehicles_Above_Average(TripInfo, AverageDayFleet);
-            int LatestDayRecharging = calculate_Latest_Day_Recharging(Recargas);
 
-            double TotalRechargesCost = calculate_Total_Recharges_Cost(Recargas); */
+			System.out.println("e) média de km diários da frota");
+			AverageDayFleet = calculate_Average_Day_Fleet(TripInfo, carNumbers, dayNumbers);
+			printE(AverageDayFleet, carNumbers, dayNumbers);
 
+			System.out.println("f) deslocações sempre acima da média diária");
+			VehiclesAboveAverage = calculate_Vehicles_Above_Average(TripInfo, AverageDayFleet, carNumbers, dayNumbers);
+			printF(VehiclesAboveAverage, carNumbers);
+
+			System.out.println("g) veículos com mais dias consecutivas a necessitar de recarga");
+			printG(RecargasDiarias, carNumbers, dayNumbers);
+
+			LatestDayRecharging = calculate_Latest_Day_Recharging(RecargasDiarias, carNumbers, dayNumbers);
+			System.out.printf("h) dia mais tardio em que todos os veículos necessitam de recarregar <%d>\n", LatestDayRecharging);
+
+            TotalRechargesCost = calculate_Total_Recharges_Cost(RecargasDiarias, carNumbers, dayNumbers);
+			System.out.printf("\ni) custo das recargas da frota <%.2f €>\n", TotalRechargesCost);
         }
 
         // Leitura de dados -----------------------------------------------------------
@@ -155,49 +165,81 @@ public class main {
         public static double[] calculate_Average_Day_Fleet(int[][] TripInfo, int carNumbers, int dayNumbers){
             int sum = 0;
             double[] AverageDayFleet = new double[dayNumbers];
-            for (int i = 0; i < carNumbers; i++) {
-                for (int j = 0; j < dayNumbers; j++) {
-                    sum += TripInfo[i][j];
+            for (int i = 0; i < dayNumbers; i++)
+			{
+                for (int j = 0; j < carNumbers; j++)
+				{
+                    sum += TripInfo[j][i];
                 }
                 AverageDayFleet[i] = calculate_Average_Km(sum, carNumbers);
+				sum = 0;
             }
            return AverageDayFleet;
         }
 
-        public static boolean[] calculate_Vehicles_Above_Average(int[][] TripInfo, double Average, int carNumbers, int dayNumbers){
-            int sum = 0;
-            boolean[] VehiclesAboveAverage = new boolean[carNumbers];
-            for (int i = 0; i < carNumbers; i++) {
-                sum = 0;
-                for (int j = 0; j < dayNumbers; j++) {
-                    sum += TripInfo[i][j];
-                }
-                if (calculate_Average_Km(sum, carNumbers) > Average) {
-                    VehiclesAboveAverage[i] = true;
-                }
-            }
-            return VehiclesAboveAverage;
-        }
+		// alterei a função para não fazer calculos, apenas comparações, e mudar o boleano de acordo com isso, para economizara operações
+		// e ciclos, porque se encontrar um q nao bate, já sai logo do loop
+		public static boolean[] calculate_Vehicles_Above_Average(int[][] TripInfo, double[] Average, int carNumbers, int dayNumbers){
+			boolean[] VehiclesAboveAverage = new boolean[carNumbers];
+
+			for (int i = 0; i < carNumbers; i++) {
+				VehiclesAboveAverage[i] = true;
+				for (int j = 0; j < dayNumbers; j++) {
+					if (TripInfo[i][j] < Average[i]) {
+						VehiclesAboveAverage[i] = false;
+						break ;
+					}
+				}
+			}
+			return VehiclesAboveAverage;
+		}
 
         public static void calculate_Vehicles_Charged_In_Row(int[][] Recargas){
             // Este método vai imprimir os carros que fizeram mais recargas seguidas
         }
 
-/*         public static int calculate_Latest_Day_Recharging(int[][] Recargas){
-            // Este método vai calcular o dia em que houve mais recargas
+		public static int calculate_Latest_Day_Recharging(int[][] Recargas, int carNumbers, int dayNumbers){
+			int	manyCarsCharged;
+			int	highest_value = 0;
+			int	date;
+
+			date = 0;
+			for (int i = 0; i < dayNumbers; i++) {
+				manyCarsCharged = 0;
+
+				for (int j = 0; j < carNumbers; j++) {
+					if (Recargas[j][i] == 0)
+						break ;
+					manyCarsCharged++;
+				}
+				if (manyCarsCharged > highest_value)
+				{
+					highest_value  = manyCarsCharged;
+					date = i;
+				}
+			}
+			return (date);
+		}
+
+       public static double calculate_Total_Recharges_Cost(int[][] Recargas, int carNumbers, int dayNumbers){
+			double	fullPrice;
+
+			fullPrice = 0;
+			for (int i = 0; i < carNumbers; i++) {
+				for (int j = 0; j < dayNumbers; j++) {
+					fullPrice += Recargas[i][j] * RECHARGE_COST;
+				}
+			}
+			return (fullPrice);
         }
 
-        public static double calculate_Total_Recharges_Cost(int[][] Recargas){
-            // Este método vai calcular o total de recargas feitas
-        }
-
-        public static int calculate_Prevention_Car(int[][] TripInfo){
+       /*  public static int calculate_Prevention_Car(int[][] TripInfo){
             // Ler no enunciado o que é para fazer
-        }
-z */
-    // TODO: Fazer todos os métodos de print ( chato :( )
+        }*/
 
-        public static void print_Days(int dayNumbers, int carNumbers){
+		// TODO: Fazer todos os métodos de print ( chato :( )
+
+        public static void print_Days(int dayNumbers){
             System.out.printf("dia :");
             for (int i = 0; i < dayNumbers; i++) {
                 System.out.printf("       %d", i);
@@ -211,7 +253,7 @@ z */
 		}
 
 		public static void printA(int[][] array, int carNumbers, int dayNumbers){
-			print_Days(dayNumbers, carNumbers);
+			print_Days(dayNumbers);
 			for (int i = 0; i < carNumbers; i++) {
 				System.out.printf("V%d :", i);
 				for (int j = 0; j < dayNumbers; j++)
@@ -221,17 +263,6 @@ z */
 			System.out.println();
 		}
 
-        public static void printD(double[][] array, int carNumbers, int dayNumbers) {
-            print_Days(dayNumbers, carNumbers);
-            for (int i = 0; i < carNumbers; i++) {
-                System.out.printf("V%d :", i);
-                for (int j = 0; j < dayNumbers; j++)
-                    System.out.printf("    %.2f%%", array[i][j]);
-                System.out.println();
-            }
-            System.out.println();
-        }
-
 		public static void printB(int[] CarTripSum, int carNumbers)
 		{
 			System.out.println("b) total de km a percorrer");
@@ -239,5 +270,75 @@ z */
 				System.out.printf("V%d :	%d\n",i, CarTripSum[i]);
 		}
 
+		public static void printD(double[][] array, int carNumbers, int dayNumbers) {
+			print_Days(dayNumbers);
+			for (int i = 0; i < carNumbers; i++) {
+				System.out.printf("V%d :", i);
+				for (int j = 0; j < dayNumbers; j++)
+					System.out.printf("    %.2f%%", array[i][j]);
+				System.out.println();
+			}
+			System.out.println();
+		}
+
+		public static void printE(double[] AverageDayFleet, int carNumbers, int dayNumbers) {
+            print_Days(dayNumbers);
+			System.out.printf("km  :");
+            for (int i = 0; i < dayNumbers; i++) {
+				System.out.printf("    %.1f",AverageDayFleet[i]);
+            }
+            System.out.println("\n");
+        }
+
+		public static void printF(boolean[] VehiclesAboveAverage, int carNumbers) {
+			int	many = 0;
+
+			for (int j = 0; j < carNumbers; j++) {
+				if (VehiclesAboveAverage[j])
+					many++;
+			}
+			System.out.printf("<%d> veículos :", many);
+            for (int i = 0; i < carNumbers; i++) {
+				if (VehiclesAboveAverage[i])
+					System.out.printf(" [V%d]", i);
+            }
+            System.out.println("\n");
+        }
+
+		public static void printG(int[][] RecargasDiarias, int carNumbers, int dayNumbers) {
+			int	highest_value = 0;
+			int	sum;
+
+			for (int i = 0; i < carNumbers; i++) {
+				sum = 0;
+
+				for (int j = 0; j < dayNumbers; j++){
+					if (RecargasDiarias[i][j] == 0)
+						break ;
+					sum++;
+				}
+				if (sum > highest_value)
+					highest_value = sum;
+
+			}
+
+			System.out.printf("<%d> dias consecutivos, veículos :", highest_value);
+
+			for (int i = 0; i < carNumbers; i++){
+				sum = 0;
+
+				for (int j = 0; j < dayNumbers; j++) {
+					if (RecargasDiarias[i][j] == 0)
+						break ;
+					sum++;
+				}
+				if (sum == highest_value)
+					System.out.printf(" [V%d]", i);
+            }
+            System.out.println("\n");
+        }
+
 }
 
+// f) deslocações sempre acima da média diária
+// <1> veículos : [V0]
