@@ -43,11 +43,14 @@ public class main {
 
             RecargasDiarias = calculate_Recargas_Day(TripInfo, carNumbers, dayNumbers);
 			System.out.println();
-			printA(RecargasDiarias, carNumbers, dayNumbers);
-/*           	PercentageLeft = calculate_Percentage_Left(TripInfo, RecargasDiarias, carNumbers, dayNumbers);
 
-			printA(PercentageLeft, carNumbers, dayNumbers);
-            double[] AverageDayFleet = calculate_Average_Day_Fleet(TripInfo, carNumbers, dayNumbers);
+            System.out.println("c) recargas das baterias");
+			printA(RecargasDiarias, carNumbers, dayNumbers);
+
+            System.out.println("d) carga das baterias");
+           	PercentageLeft = calculate_Percentage_Left(TripInfo, RecargasDiarias, carNumbers, dayNumbers);
+			printD(PercentageLeft, carNumbers, dayNumbers);
+   /*       double[] AverageDayFleet = calculate_Average_Day_Fleet(TripInfo, carNumbers, dayNumbers);
             boolean[] VehiclesAboveAverage = calculate_Vehicles_Above_Average(TripInfo, AverageDayFleet);
             int LatestDayRecharging = calculate_Latest_Day_Recharging(Recargas);
 
@@ -121,17 +124,25 @@ public class main {
             return Recargas;
         }
 
-
-
-    public static double calculate_To_percentage(int initialBattery){
-            return (initialBattery % AUTONOMY_KM) * 100;
+        public static double calculate_To_Percentage(int tripDay, int remainingBattery) {
+            int tempTrip = tripDay - remainingBattery;
+            if (tempTrip < 0) {
+                return (Math.abs(tempTrip) / (double) AUTONOMY_KM) * 100;
+            }
+            while (tempTrip >= 0) {
+                tempTrip -= AUTONOMY_KM;
+            }
+            return (Math.abs(tempTrip) / (double) AUTONOMY_KM) * 100;
         }
 
         public static double[][] calculate_Percentage_Left(int[][] TripInfo, int[][] Recargas,int carNumbers,int dayNumbers){
             double[][] PercentageLeft = new double[carNumbers][dayNumbers];
+            int remainingBattery;
             for (int i = 0; i < carNumbers; i++) {
+                remainingBattery = AUTONOMY_KM;
                 for (int j = 0; j < dayNumbers; j++) {
-                    PercentageLeft[i][j] = calculate_To_percentage(TripInfo[i][j]);
+                    PercentageLeft[i][j] = calculate_To_Percentage(TripInfo[i][j], remainingBattery);
+                    remainingBattery = update_Remaining_Battery(TripInfo[i][j], remainingBattery);
                 }
             }
             return PercentageLeft;
@@ -209,6 +220,17 @@ z */
 			}
 			System.out.println();
 		}
+
+        public static void printD(double[][] array, int carNumbers, int dayNumbers) {
+            print_Days(dayNumbers, carNumbers);
+            for (int i = 0; i < carNumbers; i++) {
+                System.out.printf("V%d :", i);
+                for (int j = 0; j < dayNumbers; j++)
+                    System.out.printf("    %.2f%%", array[i][j]);
+                System.out.println();
+            }
+            System.out.println();
+        }
 
 		public static void printB(int[] CarTripSum, int carNumbers)
 		{
