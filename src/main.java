@@ -315,9 +315,11 @@ public class main {
 		}
 
 		//-------------------------J-----------------------------//
+
 		public static void DoingJ(int[][] TripInfo, double[][] BatteryLevel, int carNumbers)
 		{
 			int	prevVehicle;
+
 			prevVehicle = 0;
 			for (int i = 1; i < carNumbers; i++)
 			{
