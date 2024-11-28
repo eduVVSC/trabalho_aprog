@@ -1,22 +1,23 @@
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.time.DayOfWeek;
 import java.util.Scanner;
 
 public class main {
 
-        //Declaração de constantes globais
+		//Declaração de constantes globais
 
-        //Cada Km -> 1% da bateria
-        public static final int AUTONOMY_KM = 100;
-        public static final double RECHARGE_COST = 5.5;
-        public static final int PREVENTION_DAY = 4;
-        //_________________________
+		//Cada Km -> 1% da bateria
+		public static final int AUTONOMY_KM = 100;
+		public static final double RECHARGE_COST = 5.5;
+		public static final int PREVENTION_DAY = 1;
+		//_________________________
 
-        //Declaração de Variáveis globais
-        public static Scanner scanner = new Scanner(System.in);
-        //-------------------------
-
-		public static void main(String[] args) {
+		//Declaração de Variáveis globais
+		public static Scanner scanner = new Scanner(System.in);
+		//-------------------------
+		public static void main(String[] args) throws FileNotFoundException {
 			String		description;
 			double[]	AverageDayFleet;
 			double[][]	BatteryLevel;
@@ -26,11 +27,23 @@ public class main {
 			int			carNumbers;
 
 			description = read_Description();
-			carNumbers = scanner.nextInt();
-			dayNumbers = scanner.nextInt();
-			TripInfo = new int[carNumbers][dayNumbers];
-
-			read_Planning(TripInfo, carNumbers, dayNumbers);
+			if (check_read(description) == 0)
+			{
+				carNumbers = scanner.nextInt();
+				dayNumbers = scanner.nextInt();
+				TripInfo = new int[carNumbers][dayNumbers];
+				read_Planning(TripInfo, carNumbers, dayNumbers, scanner);
+			}
+			else
+			{
+				File inputFile = new File(description);
+				Scanner file_scan = new Scanner(inputFile);
+				description = file_scan.nextLine();
+				carNumbers = file_scan.nextInt();
+				dayNumbers = file_scan.nextInt();
+				TripInfo = new int[carNumbers][dayNumbers];
+				read_Planning(TripInfo, carNumbers, dayNumbers, file_scan);
+			}
 
 			DoingA(TripInfo, carNumbers, dayNumbers);
 
@@ -51,6 +64,17 @@ public class main {
 			DoingI(RecargasDiarias, carNumbers, dayNumbers);
 
 			DoingJ(TripInfo , BatteryLevel, carNumbers);
+		}
+
+		//---------------------READ------------------------//
+
+		public static int check_read(String str)
+		{
+			String[]	splited_string;
+			splited_string = str.split("\\.");
+			 if(splited_string[splited_string.length - 1].equals("txt"))
+					return (1);
+			return (0);
 		}
 
 		//---------------------Exercices------------------------//
@@ -215,7 +239,7 @@ public class main {
 			for (int i = 0; i < carNumbers; i++) {
 				VehiclesAboveAverage[i] = true;
 				for (int j = 0; j < dayNumbers; j++) {
-					if (TripInfo[i][j] < Average[i]) {
+					if (TripInfo[i][j] <= Average[j]) {
 						VehiclesAboveAverage[i] = false;
 						break ;
 					}
@@ -247,33 +271,52 @@ public class main {
 			printG(RecargasDiarias, carNumbers, dayNumbers);
 		}
 
+		public static int highest_streak_car(int[] RecargasDiarias, int dayNumbers)
+		{
+			int	highest_1;
+			int	highest_2;
+
+			highest_1 = 0;
+			highest_2 = 0;
+			for (int i = 0; i < dayNumbers; i++)
+			{
+				if (RecargasDiarias[i] > 0)
+					highest_2++;
+				if (RecargasDiarias[i] == 0)
+				{
+					if (highest_2 > highest_1)
+						highest_1 = highest_2;
+					highest_2 = 0;
+				}
+			}
+			if (highest_1 < highest_2)
+				return (highest_2);
+			return (highest_1);
+		}
+
 		public static void printG(int[][] RecargasDiarias, int carNumbers, int dayNumbers) {
 			int	highest_value = 0;
 			int	sum;
 
 			for (int i = 0; i < carNumbers; i++) {
 				sum = 0;
-
-				for (int j = 0; j < dayNumbers; j++){
-					if (RecargasDiarias[i][j] == 0)
-						break ;
-					sum++;
-				}
+				sum = highest_streak_car(RecargasDiarias[i], dayNumbers);
 				if (sum > highest_value)
 					highest_value = sum;
 
 			}
 
-			System.out.printf("<%d> dias consecutivos, veículos :", highest_value);
+			// check with teacher
+			if (highest_value != 0)
+				System.out.printf("<%d> dias consecutivos, veículos :", highest_value);
+			else
+			{
+				System.out.printf("< - >No cars were recharged\n\n");
+				return ;
+			}
 
 			for (int i = 0; i < carNumbers; i++){
-				sum = 0;
-
-				for (int j = 0; j < dayNumbers; j++) {
-					if (RecargasDiarias[i][j] == 0)
-						break ;
-					sum++;
-				}
+				sum = highest_streak_car(RecargasDiarias[i], dayNumbers);
 				if (sum == highest_value)
 					System.out.printf(" [V%d]", i);
             }
@@ -388,7 +431,7 @@ public class main {
 			int	highest_value = 0;
 			int	date;
 
-			date = 0;
+			date = -1;
 			for (int i = 0; i < dayNumbers; i++) {
 				manyCarsCharged = 0;
 
@@ -423,11 +466,11 @@ public class main {
 			return scanner.nextLine();
 		}
 
-		public static void read_Planning(int[][] TripInfo, int carNumbers, int dayNumbers){
+		public static void read_Planning(int[][] TripInfo, int carNumbers, int dayNumbers, Scanner exp_Scanner){
 			for (int i = 0; i < carNumbers; i++)
 			{
 				for (int j = 0; j < dayNumbers; j++)
-					TripInfo[i][j] = scanner.nextInt();
+					TripInfo[i][j] = exp_Scanner.nextInt();
 			}
 		}
 
